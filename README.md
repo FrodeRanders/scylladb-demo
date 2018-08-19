@@ -165,11 +165,11 @@ You may edit the configuration file of a cluster node either from the host or fr
 
 For the sake of this demo, we will modify the configuration from within the container (from a Bash shell).
 
-```bash
+```
 ➜ docker exec -it scylla-node1 /bin/bash
 
-$> vi /etc/scylla/scylla.yaml
-$> exit
+[root@ae4179b857f0 /]# vi /etc/scylla/scylla.yaml
+[root@ae4179b857f0 /]# exit
 ```
 
 Restart ScyllaDB in node 1.
@@ -245,6 +245,27 @@ cassandra@cqlsh:demo> SELECT * FROM contract;
 (1 rows)
 
 cassandra@cqlsh:demo> exit
+```
+
+## Connecting from a client
+
+This [simple demo](https://github.com/FrodeRanders/scylladb-demo/blob/master/src/main/java/org/gautelis/scylla/demo/App.java) program describes how to connect to the cluster and issue CQL statements from Java.
+
+The demo program will just add lots of rows to the 'contract' table, almost 100.000 rows.
+
+```
+➜ docker exec -it scylla-node1 cqlsh -ucassandra -pcassandra
+Connected to  at 172.17.0.2:9042.
+[cqlsh 5.0.1 | Cassandra 3.0.8 | CQL spec 3.3.1 | Native protocol v4]
+Use HELP for help.
+cassandra@cqlsh> SELECT COUNT(*) FROM demo.contract;
+
+ count
+-------
+ 99999
+
+(1 rows)
+cassandra@cqlsh> exit
 ```
 
 ## Stopping the cluster

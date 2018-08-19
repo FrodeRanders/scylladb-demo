@@ -10,11 +10,10 @@ import org.junit.Test;
 public class AppTest 
 {
     /**
-     * Rigorous Test :-)
      */
     @Test
-    public void shouldAnswerWithTrue()
+    public void callmain()
     {
-        assertTrue( true );
+        App.main(new String[] {});
     }
 }
