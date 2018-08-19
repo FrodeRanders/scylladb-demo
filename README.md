@@ -274,8 +274,11 @@ First, we need to bring down the cluster nodes in an orderly fashion.
 
 ```bash
 ➜ docker exec -it scylla-node3 supervisorctl stop scylla
+scylla: stopped
 ➜ docker exec -it scylla-node2 supervisorctl stop scylla
+scylla: stopped
 ➜ docker exec -it scylla-node1 supervisorctl stop scylla
+scylla: stopped
 ```
 
 Next, the containers can be stopped and removed.
