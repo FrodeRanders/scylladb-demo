@@ -1,4 +1,4 @@
-package org.gautelis;
+package org.gautelis.scylla.demo;
 
 import static org.junit.Assert.assertTrue;
 

@@ -1,4 +1,4 @@
-package org.gautelis;
+package org.gautelis.scylla.demo;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
@@ -6,8 +6,6 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 
 import java.net.InetSocketAddress;
-
-import static java.util.UUID.randomUUID;
 
 
 public class App {
@@ -20,19 +18,16 @@ public class App {
                 .withCredentials("cassandra", "cassandra")
                 .build()) {
 
-            try (Session session = cluster.connect("test")) {
+            try (Session session = cluster.connect("demo")) {
 
                 PreparedStatement myPreparedInsert = session.prepare(
-                        "INSERT INTO ttt(id, code) VALUES (?,?)"
+                        "INSERT INTO contract(id, code) VALUES (?,?)"
                 );
 
-                //BoundStatement myInsert = myPreparedInsert
-                //        .bind(randomUUID(), 42);
-
-                BoundStatement myInsert = myPreparedInsert
-                        .bind(2, 42);
-
-                session.execute(myInsert);
+                for (int i = 2; i < 100000; i++) {
+                   BoundStatement myInsert = myPreparedInsert.bind(i, 42 + i);
+                   session.execute(myInsert);
+                }
             }
         }
     }
