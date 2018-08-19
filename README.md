@@ -16,7 +16,7 @@ By keeping the database files outside of the Scylla containers, the data will su
 
 The last piece of information we need is that each ScyllaDB instance is configured by means of the file ```/etc/scylla/scylla.yaml``` within each respective container. We want to provide a uniqe configuration file to each ScyllaDB instance and the easiest way to do this is to externalize this file from each container. 
 
-The default ScyllaDB configuration file is present as ```/etc/scylla/scylla.yaml``` in the ```scylladb/scylla``` image but we will overlay it with our own configuration file -- one unique file per ScyllaDB instance (i.e. one unique file per ScyllaDB container).
+The default ScyllaDB configuration file is present as ```/etc/scylla/scylla.yaml``` in the ```scylladb/scylla``` image but we will overlay it with our own configuration file -- one unique file per ScyllaDB instance (i.e. one unique file per Scylla container).
 
 Using raw Docker, we will have to be explicit about network ports, but more on that later on.
 
@@ -24,7 +24,7 @@ Using raw Docker, we will have to be explicit about network ports, but more on t
 
 First we need to determine a suitable configuration file template for our setup. We want to do this since we need to modify the configuration of at least one ScyllaDB instance (in order to authenticate for keyspace creation) and possibly for all ScyllaDB instances.
 
-You could start by retrieving a template from [GitHub](https://github.com/scylladb/scylla/blob/master/conf/scylla.yaml), but it may differ from the one bundled with the ScyllaDB image (which in fact it does!) The best is to pick the one bundled with the image as a template.
+You could start by retrieving a template from [GitHub](https://github.com/scylladb/scylla/blob/master/conf/scylla.yaml), but it may differ from the one bundled with the Scylla image (which in fact it does!) The best is to pick the one bundled with the image as a template.
 
 If you want to pull a template from GitHub, do something like this:
 
@@ -64,7 +64,7 @@ The default super user is ```cassandra``` with password ```cassandra```.
 
 ### Node 1
 
-Clone the scylla-template.yaml for node 1.
+Clone ```scylla-template.yaml``` for node 1.
 
 ```bash
 ➜ cp scylla-template.yaml scylla-node1.yaml
@@ -91,7 +91,7 @@ In order to actually create a cluster of such nodes, subsequent nodes need to fi
 
 ### Node 2
 
-Clone the scylla-template.yaml for node 2.
+Clone ```scylla-template.yaml``` for node 2.
 
 ```bash
 ➜ cp scylla-template.yaml scylla-node2.yaml
@@ -110,7 +110,7 @@ I am mounting a local directory (```~/scylla/mapped/node2```) as a volume in the
 
 ### Node 3
 
-Clone the scylla-template.yaml for node 3.
+Clone ```scylla-template.yaml``` for node 3.
 
 ```bash
 ➜ cp scylla-template.yaml scylla-node3.yaml
