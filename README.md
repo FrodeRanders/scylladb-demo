@@ -36,9 +36,8 @@ If you instead want to pull a template from the container (recommended!), do som
 
 ```bash
 ➜ docker run scylladb/scylla just-some-unrecognised-argument
-➜ docker export $(docker ps -lq) | tar xf - etc/scylla/scylla.yaml
+➜ docker cp $(docker ps -lq):/etc/scylla/scylla.yaml scylla-template.yaml
 ➜ docker rm $(docker ps -lq)
-➜ cp ./etc/scylla/scylla.yaml ./scylla-template.yaml
 ```
 
 Next we need to add some lines to the template in order to allow us to connect as an authenticated user and create keyspaces and such:
