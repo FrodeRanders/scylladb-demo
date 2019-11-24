@@ -283,7 +283,7 @@ scylla: stopped
 Next, the containers can be stopped and removed.
 
 ```bash
-➜ scylla docker ps --all
+➜ docker ps --all
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                  NAMES
 e11d225bb296        scylladb/scylla     "/docker-entrypoint.…"   15 minutes ago      Up 15 minutes       7000-7001/tcp, 9160/tcp, 9180/tcp, 10000/tcp, 0.0.0.0:9044->9042/tcp   scylla-node3
 e79f3d62d489        scylladb/scylla     "/docker-entrypoint.…"   17 minutes ago      Up 17 minutes       7000-7001/tcp, 9160/tcp, 9180/tcp, 10000/tcp, 0.0.0.0:9043->9042/tcp   scylla-node2
