@@ -131,32 +131,32 @@ I am mounting a local directory (```~/scylla/mapped/node3```) as a volume in the
 The cluster status can be queried by executing the ```nodetool``` in a running container, say in ```scylla-node1``` (the first instance of ScyllaDB).
 
 ```bash
-➜ docker exec -it scylla-node1 nodetool status
+➜ docker exec -it scylla-node1 nodetool status demo
 Datacenter: datacenter1
 =======================
 Status=Up/Down
 |/ State=Normal/Leaving/Joining/Moving
---  Address     Load       Tokens       Owns    Host ID                               Rack
-UN  172.17.0.3  533.16 KB  256          ?       e4a05d0d-8b30-471f-b2e3-626215a62464  rack1
-UN  172.17.0.2  603.5 KB   256          ?       4dab9d8d-cbe9-4ef2-8317-d99cd75122af  rack1
-UJ  172.17.0.4  ?          256          ?       e51352e7-3b70-4b4d-b52a-a8144bb5d636  rack1
+--  Address     Load       Tokens       Owns (effective)  Host ID                               Rack
+UJ  172.17.0.3  ?          256          ?                 d0e2e9f6-3941-4ced-bda6-b1bbbe2c1c7f  rack1
+UN  172.17.0.2  395.97 KB  256          100.0%            0cd8f34f-6988-4cae-b042-de98faac6482  rack1
+UJ  172.17.0.4  ?          256          ?                 08c7cf41-59bd-4357-b279-0c491b252f21  rack1
 ```
 
-So, the ```scylla-node3``` seem to be still joining the cluster -- wait and see :)
+So, the ```scylla-node2``` and ```scylla-node3``` nodes seem to be still joining the cluster -- wait and see :)
 
 ```bash
-➜ docker exec -it scylla-node1 nodetool status
+➜ docker exec -it scylla-node1 nodetool status demo
 Datacenter: datacenter1
 =======================
 Status=Up/Down
 |/ State=Normal/Leaving/Joining/Moving
---  Address     Load       Tokens       Owns    Host ID                               Rack
-UN  172.17.0.3  587.5 KB   256          ?       e4a05d0d-8b30-471f-b2e3-626215a62464  rack1
-UN  172.17.0.2  658.17 KB  256          ?       4dab9d8d-cbe9-4ef2-8317-d99cd75122af  rack1
-UN  172.17.0.4  592.63 KB  256          ?       e51352e7-3b70-4b4d-b52a-a8144bb5d636  rack1
+--  Address     Load       Tokens       Owns (effective)  Host ID                               Rack
+UN  172.17.0.3  367.91 KB  256          62.9%             d0e2e9f6-3941-4ced-bda6-b1bbbe2c1c7f  rack1
+UN  172.17.0.2  395.97 KB  256          67.2%             0cd8f34f-6988-4cae-b042-de98faac6482  rack1
+UN  172.17.0.4  367.9 KB   256          69.9%             08c7cf41-59bd-4357-b279-0c491b252f21  rack1
 ```
 
-Now ```scylla-node3``` has successfully joined the cluster with ```scylla-node1``` and ```scylla-node2```.
+Now ```scylla-node2``` and ```scylla-node3``` have successfully joined the cluster with ```scylla-node1```.
 
 ## Steps for reconfiguring a node in a running cluster
 
