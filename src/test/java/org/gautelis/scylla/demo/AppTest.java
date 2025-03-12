@@ -1,7 +1,5 @@
 package org.gautelis.scylla.demo;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 /**
