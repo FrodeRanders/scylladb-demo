@@ -35,9 +35,9 @@ If you want to pull a template from GitHub, do something like this:
 If you instead want to pull a template from the container (recommended!), do something like this:
 
 ```bash
-➜ docker run scylladb/scylla just-some-unrecognised-argument
-➜ docker cp $(docker ps -lq):/etc/scylla/scylla.yaml scylla-template.yaml
-➜ docker rm $(docker ps -lq)
+➜ CONTAINER_ID=$(docker create scylladb/scylla)
+➜ docker cp "$CONTAINER_ID:/etc/scylla/scylla.yaml" ./scylla-template.yaml
+➜ docker rm "$CONTAINER_ID"
 ```
 
 Next we need to add some lines to the template in order to allow us to connect as an authenticated user and create keyspaces and such:
@@ -72,13 +72,18 @@ Clone ```scylla-template.yaml``` for node 1.
 We want to run the first ScyllaDB instance in a container, exposing the internal native transport port ```9042``` available as ```9042``` on the host.
 I am mounting a local directory (```~/scylla/mapped/node1```) as a volume in the container, and also bind-mounting (overlaying) the external configuration file on top of the existing configuration file.
 
+```bash
+➜ docker network create scylla-cluster
+```
 Currently, for the sake of this demo, I am only exposing the native transport port (```9042```) but the rest can be exposed as well.
 
 ```bash
 ➜ docker run --name scylla-node1 --publish 9042:9042 \
+             --network scylla-cluster
              --volume /Users/froran/scylla/mapped/node1:/var/lib/scylla \
              --volume /Users/froran/scylla/scylla-node1.yaml:/etc/scylla/scylla.yaml \
              --detach scylladb/scylla
+             --seeds="scylla-node1"
 ```
 
 In order to actually create a cluster of such nodes, subsequent nodes need to find this node (any node actually). The following command can be used to determine the IP-address of ```scylla-node1``` in the docker environment.
@@ -101,10 +106,11 @@ I am mounting a local directory (```~/scylla/mapped/node2```) as a volume in the
 
 ```bash
 ➜ docker run --name scylla-node2 --publish 9043:9042 \
+             --network scylla-cluster
              --volume /Users/froran/scylla/mapped/node2:/var/lib/scylla \
              --volume /Users/froran/scylla/scylla-node2.yaml:/etc/scylla/scylla.yaml \
              --detach scylladb/scylla \
-             --seeds="$(docker inspect --format='{{ .NetworkSettings.IPAddress }}' scylla-node1)"
+             --seeds="scylla-node1"
 ```
 
 ### Node 3
@@ -120,10 +126,11 @@ I am mounting a local directory (```~/scylla/mapped/node3```) as a volume in the
 
 ```bash
 ➜ docker run --name scylla-node3 --publish 9044:9042 \
+             --network scylla-cluster
              --volume /Users/froran/scylla/mapped/node3:/var/lib/scylla \
              --volume /Users/froran/scylla/scylla-node3.yaml:/etc/scylla/scylla.yaml \
              --detach scylladb/scylla \
-             --seeds="$(docker inspect --format='{{ .NetworkSettings.IPAddress }}' scylla-node1)"
+             --seeds="scylla-node1"
 ```
 
 ## Checking the cluster status
@@ -137,8 +144,8 @@ Datacenter: datacenter1
 Status=Up/Down
 |/ State=Normal/Leaving/Joining/Moving
 --  Address     Load       Tokens       Owns (effective)  Host ID                               Rack
-UJ  172.17.0.3  ?          256          ?                 d0e2e9f6-3941-4ced-bda6-b1bbbe2c1c7f  rack1
 UN  172.17.0.2  395.97 KB  256          100.0%            0cd8f34f-6988-4cae-b042-de98faac6482  rack1
+UJ  172.17.0.3  ?          256          ?                 d0e2e9f6-3941-4ced-bda6-b1bbbe2c1c7f  rack1
 UJ  172.17.0.4  ?          256          ?                 08c7cf41-59bd-4357-b279-0c491b252f21  rack1
 ```
 
@@ -151,8 +158,8 @@ Datacenter: datacenter1
 Status=Up/Down
 |/ State=Normal/Leaving/Joining/Moving
 --  Address     Load       Tokens       Owns (effective)  Host ID                               Rack
-UN  172.17.0.3  367.91 KB  256          62.9%             d0e2e9f6-3941-4ced-bda6-b1bbbe2c1c7f  rack1
 UN  172.17.0.2  395.97 KB  256          67.2%             0cd8f34f-6988-4cae-b042-de98faac6482  rack1
+UN  172.17.0.3  367.91 KB  256          62.9%             d0e2e9f6-3941-4ced-bda6-b1bbbe2c1c7f  rack1
 UN  172.17.0.4  367.9 KB   256          69.9%             08c7cf41-59bd-4357-b279-0c491b252f21  rack1
 ```
 
@@ -186,7 +193,7 @@ We will use ```cqlsh``` (the Cassandra Query Language Shell) to create a keyspac
 ```bash
 ➜ docker exec -it scylla-node1 cqlsh -ucassandra -pcassandra
 Connected to  at 172.17.0.2:9042.
-[cqlsh 5.0.1 | Cassandra 3.0.8 | CQL spec 3.3.1 | Native protocol v4]
+[cqlsh 6.0.23.dev9+gb09bc79 | Scylla 6.2.3-0.20250119.bff9ddde1283 | CQL spec 3.3.1 | Native protocol v4]
 Use HELP for help.
 cassandra@cqlsh> LIST users;
 
@@ -196,7 +203,7 @@ cassandra@cqlsh> LIST users;
 
 (1 rows)
 
-cassandra@cqlsh> CREATE KEYSPACE demo WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 } AND DURABLE_WRITES=true;
+cassandra@cqlsh> CREATE KEYSPACE demo WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 } AND DURABLE_WRITES=true;
 
 cassandra@cqlsh> DESCRIBE keyspaces;
 
@@ -255,7 +262,7 @@ The demo program will just add lots of rows to the 'contract' table, almost 100.
 ```
 ➜ docker exec -it scylla-node1 cqlsh -ucassandra -pcassandra
 Connected to  at 172.17.0.2:9042.
-[cqlsh 5.0.1 | Cassandra 3.0.8 | CQL spec 3.3.1 | Native protocol v4]
+[cqlsh 6.0.23.dev9+gb09bc79 | Scylla 6.2.3-0.20250119.bff9ddde1283 | CQL spec 3.3.1 | Native protocol v4]
 Use HELP for help.
 cassandra@cqlsh> SELECT COUNT(*) FROM demo.contract;
 
@@ -285,10 +292,10 @@ Next, the containers can be stopped and removed.
 ```bash
 ➜ docker ps --all
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                                                  NAMES
-e11d225bb296        scylladb/scylla     "/docker-entrypoint.…"   15 minutes ago      Up 15 minutes       7000-7001/tcp, 9160/tcp, 9180/tcp, 10000/tcp, 0.0.0.0:9044->9042/tcp   scylla-node3
-e79f3d62d489        scylladb/scylla     "/docker-entrypoint.…"   17 minutes ago      Up 17 minutes       7000-7001/tcp, 9160/tcp, 9180/tcp, 10000/tcp, 0.0.0.0:9043->9042/tcp   scylla-node2
 ae4179b857f0        scylladb/scylla     "/docker-entrypoint.…"   About an hour ago   Up About an hour    7000-7001/tcp, 9160/tcp, 9180/tcp, 10000/tcp, 0.0.0.0:9042->9042/tcp   scylla-node1
+e79f3d62d489        scylladb/scylla     "/docker-entrypoint.…"   17 minutes ago      Up 17 minutes       7000-7001/tcp, 9160/tcp, 9180/tcp, 10000/tcp, 0.0.0.0:9043->9042/tcp   scylla-node2
+e11d225bb296        scylladb/scylla     "/docker-entrypoint.…"   15 minutes ago      Up 15 minutes       7000-7001/tcp, 9160/tcp, 9180/tcp, 10000/tcp, 0.0.0.0:9044->9042/tcp   scylla-node3
 
-➜ docker stop e11d225bb296 e79f3d62d489 ae4179b857f0
-➜ docker rm e11d225bb296 e79f3d62d489 ae4179b857f0
+➜ docker stop ae4179b857f0 e79f3d62d489 e11d225bb296
+➜ docker rm ae4179b857f0 e79f3d62d489 e11d225bb296
 ```
